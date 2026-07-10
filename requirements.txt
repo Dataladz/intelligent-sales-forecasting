@@ -1,6 +1,7 @@
 pandas
 numpy
 xgboost
+scikit-learn
 holidays
 fastapi
 uvicorn
