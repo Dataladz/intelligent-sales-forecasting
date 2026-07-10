@@ -60,7 +60,7 @@ class SinglePredictionRequest(BaseModel):
 
 class SequencePredictionRequest(BaseModel):
     start_date: str = Field(..., description="Start date of sequence in YYYY-MM-DD format", example="2018-08-20")
-    days: int = Field(7, description="Number of days to forecast", ge=1, le=30, example=7)
+    days: int = Field(7, description="Number of days to forecast", ge=1, le=90, example=7)
 
     class Config:
         schema_extra = {
