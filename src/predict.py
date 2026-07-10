@@ -82,6 +82,23 @@ def prepare_features_for_date(target_date_str, history_path="data/processed/time
     feature_cols = [col for col in df_target.columns if col not in ['total_sales', 'total_items', 'total_orders']]
     return df_target[feature_cols]
 
+def map_date_to_history(target_date, history_min, history_max):
+    """
+    Maps any future target_date back to the historical range by subtracting multiples of 364 days.
+    This preserves calendar seasonality and weekday index (e.g. Wednesday stays Wednesday).
+    """
+    if target_date <= history_max:
+        return target_date
+        
+    current_date = target_date
+    while current_date > history_max:
+        current_date -= pd.Timedelta(days=364)
+        
+    if current_date < history_min:
+        return history_max
+        
+    return current_date
+
 def predict_sales_for_date(target_date_str, model_path="models/best_xgboost_model.json", history_path="data/processed/time_series_sales.csv", df_history=None, model=None):
     """Loads the model, prepares features for the target date, and makes a prediction."""
     if model is None:
@@ -96,29 +113,22 @@ def predict_sales_for_date(target_date_str, model_path="models/best_xgboost_mode
     else:
         df_history = df_history.copy()
         
+    history_min = df_history.index.min()
     history_max = df_history.index.max()
     
-    # If target_date is after the end of history, we recursively predict intermediate dates
+    # If target_date is in the future, map it back to prevent server timeout and recursive decay
     if target_date > history_max:
-        current_date = history_max + pd.Timedelta(days=1)
-        while current_date < target_date:
-            current_date_str = current_date.strftime("%Y-%m-%d")
-            # Predict recursively using the current df_history
-            pred_val = predict_sales_for_date(
-                current_date_str, 
-                model_path=model_path, 
-                df_history=df_history, 
-                model=model
-            )
-            # Append predicted row to df_history
-            new_row = pd.DataFrame([[pred_val, 0.0, 0.0]], columns=['total_sales', 'total_items', 'total_orders'], index=[current_date])
-            df_history = pd.concat([df_history, new_row]).sort_index()
-            current_date += pd.Timedelta(days=1)
-            
-        # Once intermediate dates are filled, predict the final target date
-        features = prepare_features_for_date(target_date_str, df_history=df_history)
-    else:
-        features = prepare_features_for_date(target_date_str, df_history=df_history)
+        target_date_mapped = map_date_to_history(target_date, history_min, history_max)
+        target_date_mapped_str = target_date_mapped.strftime("%Y-%m-%d")
+        return predict_sales_for_date(
+            target_date_mapped_str,
+            model_path=model_path,
+            df_history=df_history,
+            model=model
+        )
+        
+    # Standard prediction logic for dates within or slightly after (for sequence small gaps) history
+    features = prepare_features_for_date(target_date_str, df_history=df_history)
         
     # Align features column order with the trained model's feature names
     trained_features = model.get_booster().feature_names
@@ -142,10 +152,33 @@ def predict_sales_sequence(start_date_str, days=7, model_path="models/best_xgboo
     df_history = pd.read_csv(history_path, parse_dates=['order_purchase_timestamp'], index_col='order_purchase_timestamp')
     df_history = df_history.sort_index()
     
+    history_min = df_history.index.min()
     history_max = df_history.index.max()
     
-    # 1. If start_date is in the future (after history_max), 
-    # we need to recursively predict/fill intermediate days from history_max + 1 day to start_date - 1 day.
+    # If start_date is in the future (exceeds history_max), map it back!
+    if start_date > history_max:
+        start_date_mapped = map_date_to_history(start_date, history_min, history_max)
+        start_date_mapped_str = start_date_mapped.strftime("%Y-%m-%d")
+        
+        # Get sequence predictions for the mapped start date
+        mapped_predictions = predict_sales_sequence(
+            start_date_mapped_str,
+            days=days,
+            model_path=model_path,
+            history_path=history_path,
+            model=model
+        )
+        
+        # Adjust dates back to the requested future timeline
+        offset_days = (start_date - start_date_mapped).days
+        for pred in mapped_predictions:
+            original_date = pd.to_datetime(pred["date"])
+            future_date = original_date + pd.Timedelta(days=offset_days)
+            pred["date"] = future_date.strftime("%Y-%m-%d")
+            
+        return mapped_predictions
+        
+    # 1. If start_date is within historical boundaries but sequence extends slightly past history_max
     if start_date > history_max + pd.Timedelta(days=1):
         # We need to fill up to start_date - 1 day
         fill_end_date = start_date - pd.Timedelta(days=1)
@@ -163,7 +196,6 @@ def predict_sales_sequence(start_date_str, days=7, model_path="models/best_xgboo
             df_history = pd.concat([df_history, new_row]).sort_index()
             current_date += pd.Timedelta(days=1)
             
-    # Now, whether start_date was in the future or not, df_history has consecutive days up to start_date - 1 day.
     # 2. Predict the requested sequence (starting from start_date, for `days` days).
     predictions = []
     current_date = start_date

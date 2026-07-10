@@ -285,17 +285,24 @@ body {
   text-shadow: 0 0 15px rgba(0, 242, 254, 0.25);
 }
 
-/* Chart and Stats Container */
-.chart-stats-grid {
+/* Charts Grid Layout */
+.charts-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2rem;
   margin-bottom: 2rem;
 }
 
-@media (max-width: 1200px) {
-  .chart-stats-grid {
+.chart-card--full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .charts-grid {
     grid-template-columns: 1fr;
+  }
+  .chart-card--full {
+    grid-column: auto;
   }
 }
 
@@ -359,6 +366,15 @@ body {
   stroke-width: 3.5;
   stroke-linecap: round;
   fill: none;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawLine 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 .chart-node {
@@ -379,10 +395,23 @@ body {
   stroke: #c084fc;
   stroke-width: 3.5;
   transition: r 0.2s ease, fill 0.2s ease;
+  filter: drop-shadow(0 0 6px #c084fc);
+  animation: pulsePoint 2s infinite alternate;
 }
 
 .chart-prediction-point:hover {
   fill: #c084fc;
+}
+
+@keyframes pulsePoint {
+  0% {
+    r: 6;
+    filter: drop-shadow(0 0 3px #c084fc);
+  }
+  100% {
+    r: 9;
+    filter: drop-shadow(0 0 10px #c084fc);
+  }
 }
 
 /* Chart Tooltip */
@@ -783,4 +812,72 @@ body {
 
 .comparison-bar-fill.purple {
   background: var(--accent-glow);
+}
+
+/* AI Insights Section */
+.ai-insights-card {
+  margin-top: 2rem;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.insight-item {
+  display: flex;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.insight-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(139, 92, 246, 0.25);
+  box-shadow: 0 5px 15px rgba(139, 92, 246, 0.05);
+}
+
+.insight-icon {
+  font-size: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.insight-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.insight-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Staggered Animations */
+.fade-in {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

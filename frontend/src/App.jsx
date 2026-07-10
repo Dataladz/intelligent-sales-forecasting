@@ -5,6 +5,7 @@ import ForecastLineChart from './components/ForecastLineChart'
 import WeekdayBarChart from './components/WeekdayBarChart'
 import CumulativeAreaChart from './components/CumulativeAreaChart'
 import WeekendWeekdayCard from './components/WeekendWeekdayCard'
+import AIInsightsPanel from './components/AIInsightsPanel'
 
 function App() {
   const [date, setDate] = useState('2018-08-20')
@@ -209,7 +210,7 @@ function App() {
           {prediction !== null && !loading && (
             <>
               {/* KPIs Section */}
-              <div className="kpis-container">
+              <div className="kpis-container fade-in">
                 <div className="kpi-card predicted">
                   <div className="kpi-label">Forecasted Sales</div>
                   <div className="kpi-value">
@@ -245,7 +246,7 @@ function App() {
               {/* Charts and Statistics */}
               {sequence && (
                 <>
-                  <div className="charts-grid">
+                  <div className="charts-grid fade-in" style={{ animationDelay: '0.15s' }}>
                     {/* Primary Line Chart */}
                     <div className="card chart-card chart-card--full">
                       <div className="chart-header">
@@ -269,7 +270,7 @@ function App() {
 
                   {/* Statistics Panel & Comparison */}
                   {stats && (
-                    <div className="card stats-card" style={{ padding: '2rem' }}>
+                    <div className="card stats-card fade-in" style={{ padding: '2rem', animationDelay: '0.3s' }}>
                       <h2>{days}-Day Horizon Analysis</h2>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                         <div>
@@ -312,12 +313,15 @@ function App() {
                       </div>
                     </div>
                   )}
+
+                  {/* AI Insights Panel */}
+                  <AIInsightsPanel forecastData={sequence} horizon={days} />
                 </>
               )}
 
               {/* Data Table Details and Download */}
               {sequence && (
-                <div className="card details-section">
+                <div className="card details-section fade-in" style={{ animationDelay: '0.5s' }}>
                   <div className="details-header">
                     <h2>{days}-Day Forecast Details</h2>
                     <div className="btn-export-group">
