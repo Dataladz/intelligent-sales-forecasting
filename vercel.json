@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/index.py": {
+      "excludeFiles": "{frontend/**,data/raw/**,notebooks/**,docs/**,reports/**,mlruns/**}"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
