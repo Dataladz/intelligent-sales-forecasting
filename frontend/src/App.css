@@ -319,6 +319,7 @@ body {
   min-height: 400px;
   display: flex;
   flex-direction: column;
+  padding: 1.5rem;
 }
 
 .chart-header {

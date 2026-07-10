@@ -13,10 +13,10 @@ export default function ForecastLineChart({ forecastData }) {
 
   const svgWidth = 800
   const svgHeight = 320
-  const paddingLeft = 70
-  const paddingRight = 40
-  const paddingTop = 40
-  const paddingBottom = 50
+  const paddingLeft = 60
+  const paddingRight = 15
+  const paddingTop = 15
+  const paddingBottom = 35
 
   const chartWidth = svgWidth - paddingLeft - paddingRight
   const chartHeight = svgHeight - paddingTop - paddingBottom
@@ -52,7 +52,7 @@ export default function ForecastLineChart({ forecastData }) {
 
   return (
     <div className="chart-container-inner" style={{ position: 'relative', width: '100%', flexGrow: 1 }}>
-      <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="svg-chart" style={{ width: '100%', height: '300px', overflow: 'visible' }}>
+      <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="svg-chart" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
         <defs>
           <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#00f2fe" stopOpacity="0.4" />
